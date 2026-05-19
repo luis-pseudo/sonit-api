@@ -11,11 +11,19 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.sonit.api.common.exception.SpotifyRateLimitException;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<ApiResponse<Void>> handleApiException(ApiException exception) {
+        if (exception instanceof SpotifyRateLimitException spotifyRateLimitException) {
+            return ResponseEntity.status(exception.getStatus())
+                    .header("Retry-After", spotifyRateLimitException.getRetryAfter())
+                    .body(ApiResponse.error(exception.getMessage()));
+        }
+
         return ResponseEntity.status(exception.getStatus())
                 .body(ApiResponse.error(exception.getMessage()));
     }
