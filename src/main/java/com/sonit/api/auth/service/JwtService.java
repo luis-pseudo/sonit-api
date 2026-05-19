@@ -1,8 +1,6 @@
 package com.sonit.api.auth.service;
 
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.Date;
 
@@ -85,11 +83,15 @@ public class JwtService {
     }
 
     private SecretKey buildSigningKey(String secret) {
-        try {
-            byte[] bytes = MessageDigest.getInstance("SHA-512").digest(secret.getBytes(StandardCharsets.UTF_8));
-            return Keys.hmacShaKeyFor(bytes);
-        } catch (NoSuchAlgorithmException ex) {
-            throw new IllegalStateException("SHA-512 algorithm not available", ex);
+        if (secret == null || secret.isBlank()) {
+            throw new IllegalArgumentException("JWT secret must not be blank");
         }
+
+        byte[] bytes = secret.getBytes(StandardCharsets.UTF_8);
+        if (bytes.length < 64) {
+            throw new IllegalArgumentException("JWT secret must be at least 64 bytes for HS512");
+        }
+
+        return Keys.hmacShaKeyFor(bytes);
     }
 }

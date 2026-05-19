@@ -9,6 +9,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class JwtServiceTest {
 
+    private static final String TEST_SECRET = "test-secret-which-is-very-long-and-secure-for-hs512-signing-key-size";
+
     private JwtService jwtService;
     private User user;
 
@@ -16,7 +18,7 @@ class JwtServiceTest {
     void setUp() {
         AppProperties properties = new AppProperties();
         AppProperties.Jwt jwtProperties = new AppProperties.Jwt();
-        jwtProperties.setSecret("test-secret");
+        jwtProperties.setSecret(TEST_SECRET);
         jwtProperties.setExpiration(3600000L);
         jwtProperties.setRefreshExpiration(7200000L);
         properties.setJwt(jwtProperties);
@@ -60,7 +62,7 @@ class JwtServiceTest {
     void shouldRejectExpiredToken() {
         AppProperties properties = new AppProperties();
         AppProperties.Jwt jwtProperties = new AppProperties.Jwt();
-        jwtProperties.setSecret("test-secret");
+        jwtProperties.setSecret(TEST_SECRET);
         jwtProperties.setExpiration(-1000L);
         jwtProperties.setRefreshExpiration(7200000L);
         properties.setJwt(jwtProperties);
