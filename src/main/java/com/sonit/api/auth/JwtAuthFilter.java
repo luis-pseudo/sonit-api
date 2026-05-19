@@ -42,12 +42,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         String token = authHeader.substring(BEARER_PREFIX.length());
 
-        // Token presente pero inválido → responder 401 inmediatamente
+        // Token present but invalid → respond 401 immediately
         if (!jwtService.isTokenValid(token) || jwtService.isRefreshToken(token)) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
             response.getWriter().write(
-                "{\"success\":false,\"message\":\"Token inválido o expirado\"}"
+                "{\"success\":false,\"message\":\"Token invalid or expired\"}"
             );
             return;
         }
