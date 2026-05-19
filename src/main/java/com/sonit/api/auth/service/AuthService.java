@@ -7,8 +7,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.sonit.api.auth.dto.AuthResponse;
+import com.sonit.api.auth.dto.LoginRequest;
+import com.sonit.api.auth.dto.RefreshTokenRequest;
 import com.sonit.api.auth.dto.RegisterRequest;
 import com.sonit.api.common.exception.ConflictException;
+import com.sonit.api.common.exception.ResourceNotFoundException;
+import com.sonit.api.common.exception.UnauthorizedException;
 import com.sonit.api.user.dto.UserSummaryDto;
 import com.sonit.api.user.model.User;
 import com.sonit.api.user.repository.UserRepository;
@@ -54,24 +58,66 @@ public class AuthService {
 
         User savedUser = userRepository.save(user);
 
-        // 5. Generate tokens
-        String accessToken = jwtService.generateAccessToken(savedUser);
-        String refreshToken = jwtService.generateRefreshToken(savedUser);
+        return buildAuthResponse(savedUser);
+        }
 
-        // 6. Return AuthResponse
+        public AuthResponse login(LoginRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+            .orElseThrow(() -> new ResourceNotFoundException("User not found for the provided email"));
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
+            throw new UnauthorizedException("Invalid credentials");
+        }
+
+        Instant now = Instant.now();
+        user.setLastSeenAt(now);
+        user.setUpdatedAt(now);
+        User savedUser = userRepository.save(user);
+
+        return buildAuthResponse(savedUser);
+        }
+
+        public AuthResponse refreshToken(RefreshTokenRequest request) {
+        String refreshToken = request.getRefreshToken();
+
+        if (!jwtService.isTokenValid(refreshToken) || !jwtService.isRefreshToken(refreshToken)) {
+            throw new UnauthorizedException("Invalid or expired refresh token");
+        }
+
+        String userId = jwtService.extractUserId(refreshToken);
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        return buildAuthResponse(user);
+        }
+
+        public void logout(String userId) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        Instant now = Instant.now();
+        user.setLastSeenAt(now);
+        user.setUpdatedAt(now);
+        userRepository.save(user);
+        }
+
+        private AuthResponse buildAuthResponse(User user) {
+        String accessToken = jwtService.generateAccessToken(user);
+        String refreshToken = jwtService.generateRefreshToken(user);
+
         UserSummaryDto userSummary = UserSummaryDto.builder()
-                .id(savedUser.getId())
-                .username(savedUser.getUsername())
-                .displayName(savedUser.getDisplayName())
-                .email(savedUser.getEmail())
-                .photoUrl(savedUser.getPhotoUrl())
-                .build();
+            .id(user.getId())
+            .username(user.getUsername())
+            .displayName(user.getDisplayName())
+            .email(user.getEmail())
+            .photoUrl(user.getPhotoUrl())
+            .build();
 
         return AuthResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .user(userSummary)
-                .build();
+            .accessToken(accessToken)
+            .refreshToken(refreshToken)
+            .user(userSummary)
+            .build();
     }
 
     private String generateUniqueUsername(String displayName) {
