@@ -1,7 +1,5 @@
 package com.sonit.api.auth.controller;
 
-import jakarta.validation.Valid;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,6 +11,8 @@ import com.sonit.api.auth.dto.AuthResponse;
 import com.sonit.api.auth.dto.RegisterRequest;
 import com.sonit.api.auth.service.AuthService;
 import com.sonit.api.common.dto.ApiResponse;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/auth")

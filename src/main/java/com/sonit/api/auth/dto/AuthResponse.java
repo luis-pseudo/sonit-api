@@ -1,10 +1,11 @@
 package com.sonit.api.auth.dto;
 
+import com.sonit.api.user.dto.UserSummaryDto;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import com.sonit.api.user.dto.UserSummaryDto;
 
 @Data
 @Builder
