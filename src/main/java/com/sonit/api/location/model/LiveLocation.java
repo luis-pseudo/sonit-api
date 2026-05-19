@@ -35,6 +35,6 @@ public class LiveLocation {
     private boolean visible;
     private Instant updatedAt;
 
-    @Indexed(expireAfterSeconds = 0)
+    @Indexed(expireAfter = "PT0S")
     private Instant expiresAt;
 }
