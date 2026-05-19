@@ -1,7 +1,5 @@
 package com.sonit.api.location.controller;
 
-import jakarta.validation.Valid;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -12,6 +10,8 @@ import com.sonit.api.common.dto.ApiResponse;
 import com.sonit.api.common.util.SecurityUtils;
 import com.sonit.api.location.dto.LocationUpdateRequest;
 import com.sonit.api.location.service.LocationService;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/location")
