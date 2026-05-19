@@ -7,6 +7,7 @@ import java.util.Date;
 import com.sonit.api.config.AppProperties;
 import com.sonit.api.user.model.User;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 
@@ -61,7 +62,7 @@ public class JwtService {
             Claims claims = extractClaims(token);
             Date expiration = claims.getExpiration();
             return expiration != null && expiration.after(new Date());
-        } catch (RuntimeException ex) {
+        } catch (JwtException | IllegalArgumentException ex) {
             return false;
         }
     }
@@ -69,7 +70,7 @@ public class JwtService {
     public boolean isRefreshToken(String token) {
         try {
             return REFRESH_TOKEN_TYPE.equals(extractClaims(token).get("type", String.class));
-        } catch (RuntimeException ex) {
+        } catch (JwtException | IllegalArgumentException ex) {
             return false;
         }
     }
