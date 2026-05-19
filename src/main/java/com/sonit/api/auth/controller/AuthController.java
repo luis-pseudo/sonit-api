@@ -28,6 +28,6 @@ public class AuthController {
     public ResponseEntity<ApiResponse<AuthResponse>> register(@Valid @RequestBody RegisterRequest request) {
         AuthResponse response = authService.register(request);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Cuenta creada exitosamente", response));
+                .body(ApiResponse.success("Account created successfully", response));
     }
 }
