@@ -1,8 +1,15 @@
 package com.sonit.api.location.service;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.geo.Distance;
+import org.springframework.data.geo.Metrics;
+import org.springframework.data.geo.Point;
 import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
 import org.springframework.stereotype.Service;
 
@@ -10,6 +17,8 @@ import com.sonit.api.common.exception.ConflictException;
 import com.sonit.api.integration.spotify.dto.TrackDto;
 import com.sonit.api.integration.spotify.service.SpotifyPlayerService;
 import com.sonit.api.location.dto.LocationUpdateRequest;
+import com.sonit.api.location.dto.NearbyLocationDto;
+import com.sonit.api.location.dto.TrackInfoDto;
 import com.sonit.api.location.model.LiveLocation;
 import com.sonit.api.location.model.TrackInfo;
 import com.sonit.api.location.repository.LiveLocationRepository;
@@ -68,5 +77,54 @@ public class LocationService {
         } catch (ConflictException ex) {
             return null;
         }
+    }
+
+    public List<NearbyLocationDto> findNearby(String requestingUserId, double latitude, double longitude, double radiusMeters, int limit) {
+        Point point = new Point(longitude, latitude);
+        Distance distance = new Distance(radiusMeters / 1000.0, Metrics.KILOMETERS);
+        Pageable pageable = PageRequest.of(0, Math.max(1, Math.min(200, limit)));
+
+        List<LiveLocation> nearby = liveLocationRepository.findByVisibleTrueAndPositionNear(point, distance, pageable);
+
+        return nearby.stream()
+                .filter(loc -> !loc.getUserId().equals(requestingUserId))
+                .map(loc -> NearbyLocationDto.builder()
+                        .userId(loc.getUserId())
+                        .latitude(loc.getLatitude())
+                        .longitude(loc.getLongitude())
+                        .distanceMeters(computeDistanceMeters(latitude, longitude, loc.getLatitude(), loc.getLongitude()))
+                        .currentTrack(mapTrackInfo(loc.getCurrentTrack()))
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    private static TrackInfoDto mapTrackInfo(TrackInfo t) {
+        if (t == null) return null;
+        return TrackInfoDto.builder()
+                .trackId(t.getTrackId())
+                .trackName(t.getTrackName())
+                .artistName(t.getArtistName())
+                .albumName(t.getAlbumName())
+                .albumArtUrl(t.getAlbumArtUrl())
+                .progressMs(t.getProgressMs())
+                .durationMs(t.getDurationMs())
+                .playing(t.isPlaying())
+                .updatedAt(t.getUpdatedAt())
+                .build();
+    }
+
+    // Haversine formula to compute meters between two lat/lng points
+    private static double computeDistanceMeters(double lat1, double lon1, double lat2, double lon2) {
+        final int R = 6371000; // Earth radius in meters
+        double latRad1 = Math.toRadians(lat1);
+        double latRad2 = Math.toRadians(lat2);
+        double deltaLat = Math.toRadians(lat2 - lat1);
+        double deltaLon = Math.toRadians(lon2 - lon1);
+
+        double a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2)
+                + Math.cos(latRad1) * Math.cos(latRad2)
+                * Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
     }
 }
