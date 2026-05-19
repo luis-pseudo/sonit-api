@@ -1,3 +1,32 @@
 spring:
   application:
-    name: api
+    name: sonit
+
+  mongodb:
+    uri: ${MONGODB_URI}
+    database: sonit
+
+  jackson:
+    default-property-inclusion: non_null
+
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    expiration: ${JWT_EXPIRATION}
+    refresh-expiration: ${JWT_REFRESH_EXPIRATION}
+
+  spotify:
+    client-id: ${SPOTIFY_CLIENT_ID}
+    client-secret: ${SPOTIFY_CLIENT_SECRET}
+    auth-url: https://accounts.spotify.com/authorize
+    token-url: https://accounts.spotify.com/api/token
+    redirect-uri: http://localhost:8080/api/integrations/spotify/callback
+    scopes: user-read-currently-playing,user-read-recently-played,user-top-read,user-read-playback-state
+
+  cors:
+    allowed-origins: http://localhost:3000,http://localhost:8080
