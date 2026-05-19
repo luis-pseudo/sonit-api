@@ -13,7 +13,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.sonit.api.common.dto.ApiResponse;
 import com.sonit.api.common.util.SecurityUtils;
 import com.sonit.api.integration.spotify.dto.SpotifyAuthUrlResponse;
+import com.sonit.api.integration.spotify.dto.TrackDto;
 import com.sonit.api.integration.spotify.service.SpotifyAuthService;
+import com.sonit.api.integration.spotify.service.SpotifyPlayerService;
 
 @RestController
 @RequestMapping("/integrations/spotify")
@@ -22,9 +24,11 @@ public class SpotifyController {
     private static final URI SPOTIFY_CONNECTED_DEEP_LINK = URI.create("sonit://spotify-connected");
 
     private final SpotifyAuthService spotifyAuthService;
+    private final SpotifyPlayerService spotifyPlayerService;
 
-    public SpotifyController(SpotifyAuthService spotifyAuthService) {
+    public SpotifyController(SpotifyAuthService spotifyAuthService, SpotifyPlayerService spotifyPlayerService) {
         this.spotifyAuthService = spotifyAuthService;
+        this.spotifyPlayerService = spotifyPlayerService;
     }
 
     @GetMapping("/auth-url")
@@ -44,4 +48,13 @@ public class SpotifyController {
                 .header(HttpHeaders.LOCATION, SPOTIFY_CONNECTED_DEEP_LINK.toString())
                 .build();
     }
+
+        @GetMapping("/currently-playing")
+        public ResponseEntity<ApiResponse<TrackDto>> getCurrentlyPlaying() {
+        String userId = SecurityUtils.getCurrentUserId();
+        return spotifyPlayerService.getCurrentlyPlaying(userId)
+            .<ResponseEntity<ApiResponse<TrackDto>>>map(track -> ResponseEntity.ok(
+                ApiResponse.<TrackDto>success("Currently playing track fetched successfully", track)))
+            .orElseGet(() -> ResponseEntity.ok(ApiResponse.<TrackDto>success("Sin reproducción activa", null)));
+        }
 }
