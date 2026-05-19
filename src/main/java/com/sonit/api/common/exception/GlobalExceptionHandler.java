@@ -2,8 +2,6 @@ package com.sonit.api.common.exception;
 
 import java.util.stream.Collectors;
 
-import com.sonit.api.common.dto.ApiResponse;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -11,7 +9,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.sonit.api.common.exception.SpotifyRateLimitException;
+import com.sonit.api.common.dto.ApiResponse;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
