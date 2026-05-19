@@ -14,13 +14,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class RegisterRequest {
 
-    @NotBlank(message = "displayName es requerido")
+    @NotBlank(message = "displayName is required")
     private String displayName;
 
-    @Email(message = "email debe ser válido")
-    @NotBlank(message = "email es requerido")
+    @Email(message = "email must be valid")
+    @NotBlank(message = "email is required")
     private String email;
 
-    @Size(min = 8, message = "password debe tener mínimo 8 caracteres")
+    @Size(min = 8, message = "password must have at least 8 characters")
     private String password;
 }

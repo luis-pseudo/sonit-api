@@ -28,18 +28,18 @@ public class AuthService {
     }
 
     public AuthResponse register(RegisterRequest request) {
-        // 1. Verificar que email no exista
+        // 1. Verify email does not exist
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new ConflictException("Email ya está registrado");
+            throw new ConflictException("Email already registered");
         }
 
-        // 2. Generar username único
+        // 2. Generate unique username
         String username = generateUniqueUsername(request.getDisplayName());
 
-        // 3. Hashear password
+        // 3. Hash password
         String passwordHash = passwordEncoder.encode(request.getPassword());
 
-        // 4. Construir y guardar User
+        // 4. Build and save User
         Instant now = Instant.now();
         User user = User.builder()
                 .username(username)
@@ -54,11 +54,11 @@ public class AuthService {
 
         User savedUser = userRepository.save(user);
 
-        // 5. Generar tokens
+        // 5. Generate tokens
         String accessToken = jwtService.generateAccessToken(savedUser);
         String refreshToken = jwtService.generateRefreshToken(savedUser);
 
-        // 6. Devolver AuthResponse
+        // 6. Return AuthResponse
         UserSummaryDto userSummary = UserSummaryDto.builder()
                 .id(savedUser.getId())
                 .username(savedUser.getUsername())
@@ -86,7 +86,7 @@ public class AuthService {
         }
 
         if (attempts == 10) {
-            throw new RuntimeException("No se pudo generar un username único");
+            throw new RuntimeException("Failed to generate unique username");
         }
 
         return username;
