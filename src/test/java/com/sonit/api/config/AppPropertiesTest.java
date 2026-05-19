@@ -1,7 +1,6 @@
 package com.sonit.api.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
@@ -26,7 +25,7 @@ class AppPropertiesTest {
 
         AppProperties appProperties = Binder.get(environment)
                 .bind("app", Bindable.of(AppProperties.class))
-                .orElseThrow();
+                .orElseThrow(null);
 
         assertThat(appProperties.getJwt().getSecret()).isEqualTo("secret");
         assertThat(appProperties.getJwt().getExpiration()).isEqualTo(3600000L);
