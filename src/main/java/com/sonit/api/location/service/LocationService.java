@@ -2,6 +2,7 @@ package com.sonit.api.location.service;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -22,6 +23,8 @@ import com.sonit.api.location.dto.TrackInfoDto;
 import com.sonit.api.location.model.LiveLocation;
 import com.sonit.api.location.model.TrackInfo;
 import com.sonit.api.location.repository.LiveLocationRepository;
+import com.sonit.api.user.model.User;
+import com.sonit.api.user.repository.UserRepository;
 
 @Service
 public class LocationService {
@@ -30,10 +33,12 @@ public class LocationService {
 
     private final LiveLocationRepository liveLocationRepository;
     private final SpotifyPlayerService spotifyPlayerService;
+    private final UserRepository userRepository;
 
-    public LocationService(LiveLocationRepository liveLocationRepository, SpotifyPlayerService spotifyPlayerService) {
+    public LocationService(LiveLocationRepository liveLocationRepository, SpotifyPlayerService spotifyPlayerService, UserRepository userRepository) {
         this.liveLocationRepository = liveLocationRepository;
         this.spotifyPlayerService = spotifyPlayerService;
+        this.userRepository = userRepository;
     }
 
     public LiveLocation updateLocation(String userId, LocationUpdateRequest request) {
@@ -83,19 +88,28 @@ public class LocationService {
         Point point = new Point(longitude, latitude);
         Distance distance = new Distance(radiusMeters / 1000.0, Metrics.KILOMETERS);
         Pageable pageable = PageRequest.of(0, Math.max(1, Math.min(200, limit)));
-
         List<LiveLocation> nearby = liveLocationRepository.findByVisibleTrueAndPositionNear(point, distance, pageable);
+        List<LiveLocation> filtered = nearby.stream().filter(loc -> !loc.getUserId().equals(requestingUserId)).toList();
 
-        return nearby.stream()
-                .filter(loc -> !loc.getUserId().equals(requestingUserId))
-                .map(loc -> NearbyLocationDto.builder()
-                        .userId(loc.getUserId())
-                        .latitude(loc.getLatitude())
-                        .longitude(loc.getLongitude())
-                        .distanceMeters(computeDistanceMeters(latitude, longitude, loc.getLatitude(), loc.getLongitude()))
-                        .currentTrack(mapTrackInfo(loc.getCurrentTrack()))
-                        .build())
-                .collect(Collectors.toList());
+        List<String> userIds = filtered.stream().map(LiveLocation::getUserId).toList();
+
+        Map<String, User> usersById = userRepository.findAllById(userIds).stream().collect(Collectors.toMap(User::getId, u -> u));
+
+        return filtered.stream().map(loc -> {
+                    User user = usersById.get(loc.getUserId());
+                    return NearbyLocationDto.builder()
+                            .userId(loc.getUserId())
+                            .username(user != null ? user.getUsername() : null)
+                            .displayName(user != null ? user.getDisplayName() : null)
+                            .photoUrl(user != null ? user.getPhotoUrl() : null)
+                            .latitude(loc.getLatitude())
+                            .longitude(loc.getLongitude())
+                            .distanceMeters(computeDistanceMeters(
+                                    latitude, longitude,
+                                    loc.getLatitude(), loc.getLongitude()))
+                            .currentTrack(mapTrackInfo(loc.getCurrentTrack()))
+                            .build();
+                }).collect(Collectors.toList());
     }
 
     private static TrackInfoDto mapTrackInfo(TrackInfo t) {
