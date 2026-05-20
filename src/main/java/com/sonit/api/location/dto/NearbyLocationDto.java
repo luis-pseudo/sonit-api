@@ -11,6 +11,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class NearbyLocationDto {
     private String userId;
+    private String username;
+    private String displayName;
+    private String photoUrl;
     private Double latitude;
     private Double longitude;
     private Double distanceMeters;
