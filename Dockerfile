@@ -10,7 +10,8 @@ COPY src ./src
 RUN mvn clean package -DskipTests -q
 
 # ── Stage 2: Runtime ────────────────────────────────────────────
-FROM eclipse-temurin:21-jre-bookworm
+# SOLUCIÓN: Cambiamos bookworm por jammy (Ubuntu 22.04 LTS)
+FROM eclipse-temurin:21-jre-jammy
 
 WORKDIR /app
 
