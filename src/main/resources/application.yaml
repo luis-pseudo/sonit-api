@@ -25,7 +25,7 @@ app:
     client-secret: ${SPOTIFY_CLIENT_SECRET}
     auth-url: https://accounts.spotify.com/authorize
     token-url: https://accounts.spotify.com/api/token
-    redirect-uri: http://localhost:8080/api/integrations/spotify/callback
+    redirect-uri: ${SPOTIFY_REDIRECT_URI:http://localhost:8080/api/integrations/spotify/callback}
     scopes: user-read-currently-playing,user-read-recently-played,user-top-read,user-read-playback-state
 
   cors:

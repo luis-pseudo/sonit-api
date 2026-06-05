@@ -21,7 +21,7 @@ import com.sonit.api.integration.spotify.service.SpotifyPlayerService;
 @RequestMapping("/integrations/spotify")
 public class SpotifyController {
 
-    private static final URI SPOTIFY_CONNECTED_DEEP_LINK = URI.create("sonit://spotify-connected");
+    private static final URI SPOTIFY_CONNECTED_DEEP_LINK = URI.create("https://reset-bronchial-untidy.ngrok-free.dev/api/integrations/spotify/callback");
 
     private final SpotifyAuthService spotifyAuthService;
     private final SpotifyPlayerService spotifyPlayerService;
@@ -41,20 +41,35 @@ public class SpotifyController {
 
     @GetMapping("/callback")
     public ResponseEntity<Void> handleCallback(
-            @RequestParam("code") String code,
-            @RequestParam("state") String state) {
-        spotifyAuthService.handleCallback(code, state);
+            @RequestParam(value = "code", required = false) String code,
+            @RequestParam(value = "state", required = false) String state,
+            @RequestParam(value = "error", required = false) String error) {
+
+        // Si Spotify nos mandó un error (ej. usuario canceló o no está registrado)
+        if (error != null) {
+            URI errorUri = URI.create(SPOTIFY_CONNECTED_DEEP_LINK.toString() + "?error=" + error);
+            return ResponseEntity.status(HttpStatus.FOUND)
+                    .header(HttpHeaders.LOCATION, errorUri.toString())
+                    .build();
+        }
+
+        // Si todo salió bien, procesamos el código
+        if (code != null) {
+            spotifyAuthService.handleCallback(code, state);
+        }
+
+        // Redirigimos a Flutter con éxito
         return ResponseEntity.status(HttpStatus.FOUND)
                 .header(HttpHeaders.LOCATION, SPOTIFY_CONNECTED_DEEP_LINK.toString())
                 .build();
     }
 
-        @GetMapping("/currently-playing")
-        public ResponseEntity<ApiResponse<TrackDto>> getCurrentlyPlaying() {
+    @GetMapping("/currently-playing")
+    public ResponseEntity<ApiResponse<TrackDto>> getCurrentlyPlaying() {
         String userId = SecurityUtils.getCurrentUserId();
         return spotifyPlayerService.getCurrentlyPlaying(userId)
             .<ResponseEntity<ApiResponse<TrackDto>>>map(track -> ResponseEntity.ok(
                 ApiResponse.<TrackDto>success("Currently playing track fetched successfully", track)))
             .orElseGet(() -> ResponseEntity.ok(ApiResponse.<TrackDto>success("Sin reproducción activa", null)));
-        }
+    }
 }

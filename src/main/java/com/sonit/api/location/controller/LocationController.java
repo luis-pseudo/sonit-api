@@ -14,6 +14,8 @@ import com.sonit.api.common.dto.ApiResponse;
 import com.sonit.api.common.util.SecurityUtils;
 import com.sonit.api.location.dto.LocationUpdateRequest;
 import com.sonit.api.location.dto.NearbyLocationDto;
+import com.sonit.api.location.model.LiveLocation;
+import com.sonit.api.location.model.TrackInfo;
 import com.sonit.api.location.service.LocationService;
 
 import jakarta.validation.Valid;
@@ -29,10 +31,13 @@ public class LocationController {
     }
 
     @PutMapping
-    public ResponseEntity<ApiResponse<Void>> updateLocation(@Valid @RequestBody LocationUpdateRequest request) {
+    public ResponseEntity<ApiResponse<TrackInfo>> updateLocation(
+            @Valid @RequestBody LocationUpdateRequest request) {
         String userId = SecurityUtils.getCurrentUserId();
-        locationService.updateLocation(userId, request);
-        return ResponseEntity.ok(ApiResponse.success("Location updated successfully", null));
+        LiveLocation saved = locationService.updateLocation(userId, request);
+        return ResponseEntity.ok(
+            ApiResponse.success("Location updated successfully", saved.getCurrentTrack())
+        );
     }
 
     @GetMapping("/nearby")
