@@ -21,7 +21,7 @@ import com.sonit.api.integration.spotify.service.SpotifyPlayerService;
 @RequestMapping("/integrations/spotify")
 public class SpotifyController {
 
-    private static final URI SPOTIFY_CONNECTED_DEEP_LINK = URI.create("https://reset-bronchial-untidy.ngrok-free.dev/api/integrations/spotify/callback");
+    private static final URI SPOTIFY_CONNECTED_DEEP_LINK = URI.create("https://sonit-api-latest.onrender.com/api/integrations/spotify/callback");
 
     private final SpotifyAuthService spotifyAuthService;
     private final SpotifyPlayerService spotifyPlayerService;
