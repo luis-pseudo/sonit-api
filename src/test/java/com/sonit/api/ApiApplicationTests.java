@@ -2,6 +2,7 @@ package com.sonit.api;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest(properties = {
 		"spring.data.mongodb.uri=mongodb://localhost:27017/sonit-test",
@@ -16,6 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 		"app.spotify.scopes=user-read-currently-playing",
 		"app.cors.allowed-origins[0]=http://localhost:3000"
 })
+@ActiveProfiles("test")
 class ApiApplicationTests {
 
 	@Test

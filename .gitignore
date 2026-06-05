@@ -4,6 +4,7 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 .env
+AGENTS.md
 
 ### STS ###
 .apt_generated
