@@ -15,6 +15,7 @@ import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
 import org.springframework.stereotype.Service;
 
 import com.sonit.api.common.exception.ConflictException;
+import com.sonit.api.common.exception.UnauthorizedException;
 import com.sonit.api.integration.spotify.dto.TrackDto;
 import com.sonit.api.integration.spotify.service.SpotifyPlayerService;
 import com.sonit.api.location.dto.LocationUpdateRequest;
@@ -66,7 +67,6 @@ public class LocationService {
             if (currentlyPlaying.isEmpty()) {
                 return null;
             }
-
             TrackDto track = currentlyPlaying.get();
             return TrackInfo.builder()
                     .trackId(track.getTrackId())
@@ -79,7 +79,11 @@ public class LocationService {
                     .playing(track.isPlaying())
                     .updatedAt(now)
                     .build();
-        } catch (ConflictException ex) {
+        } catch (ConflictException | UnauthorizedException ex) {
+            // Spotify no conectado o token inválido — continuar sin canción
+            return null;
+        } catch (Exception ex) {
+            // Cualquier otro error de Spotify no debe bloquear la ubicación
             return null;
         }
     }
